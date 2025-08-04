@@ -3,6 +3,7 @@
 set -e
 
 helm uninstall loki -n etl || true
+helm uninstall pgadmin -n etl || true
 helm uninstall grafana -n etl || true
 helm uninstall prometheus -n etl || true
 helm uninstall redpanda -n etl || true

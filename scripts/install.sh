@@ -15,6 +15,7 @@ helm repo add redpanda https://charts.redpanda.com
 helm repo add apache-airflow https://airflow.apache.org
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo add grafana https://grafana.github.io/helm-charts
+helm repo add runix https://helm.runix.net/
 helm repo update
 
 # Install cert-manager if not present (required for Redpanda)
@@ -85,10 +86,9 @@ helm upgrade --install airflow apache-airflow/airflow \
   --set scheduler.nodeSelector."kubernetes\.io/hostname"=k3d-etl-demo-agent-0 \
   --set triggerer.nodeSelector."kubernetes\.io/hostname"=k3d-etl-demo-agent-0
 
-# Install PostgreSQL (stable chart, default settings)
-helm upgrade --install pg stable/postgresql --namespace etl --create-namespace --wait
-
-
+# Install PostgreSQL (stable chart, custom password)
+helm upgrade --install pg stable/postgresql --namespace etl --create-namespace --wait \
+  --set postgresqlPassword=postgres
 
 # Install Redpanda (default settings)
 helm upgrade --install redpanda redpanda/redpanda --namespace etl --wait
@@ -102,5 +102,21 @@ helm upgrade --install grafana grafana/grafana --namespace etl --wait \
 
 # Install Loki
 helm upgrade --install loki grafana/loki-stack --namespace etl --wait
+
+# Reset pgAdmin state to ensure servers.json is loaded on first start
+kubectl delete pod -n etl -l app.kubernetes.io/name=pgadmin4 --ignore-not-found
+kubectl delete pvc -n etl -l app.kubernetes.io/name=pgadmin4 --ignore-not-found
+kubectl apply -f scripts/pgadmin-servers-configmap.yaml
+helm upgrade --install pgadmin runix/pgadmin4 --namespace etl --create-namespace --wait \
+  --set service.type=ClusterIP \
+  --set env.email=airflow@airflow.com \
+  --set env.password=airflow \
+  --set persistence.enabled=false \
+  --set 'extraVolumeMounts[0].name=pgadmin-servers' \
+  --set 'extraVolumeMounts[0].mountPath=/pgadmin4/servers.json' \
+  --set 'extraVolumeMounts[0].subPath=servers.json' \
+  --set 'extraVolumes[0].name=pgadmin-servers' \
+  --set 'extraVolumes[0].configMap.name=pgadmin-servers' \
+  --set env.PGADMIN_CONFIG_SERVER_MODE=False
 
 # TODO: Add Debezium and RisingWave deployments

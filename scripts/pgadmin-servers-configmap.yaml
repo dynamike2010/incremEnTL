@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pgadmin-servers
+  namespace: etl
+data:
+  servers.json: |
+    {
+      "Servers": {
+        "1": {
+          "Name": "pg-postgresql",
+          "Group": "Servers",
+          "Host": "pg-postgresql",
+          "Port": 5432,
+          "Username": "postgres",
+          "SSLMode": "prefer",
+          "MaintenanceDB": "postgres",
+          "Password": "postgres"
+        }
+      }
+    }
