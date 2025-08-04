@@ -1,0 +1,15 @@
+eggs/
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# VS Code
+.vscode/
+
+# Mac
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints

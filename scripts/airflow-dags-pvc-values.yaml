@@ -1,0 +1,12 @@
+dags:
+  persistence:
+    enabled: true
+    existingClaim: airflow-dags-pvc
+    size: 1Gi
+    accessMode: ReadWriteMany
+
+logs:
+  persistence:
+    enabled: true
+    existingClaim: airflow-logs-pvc
+    size: 1Gi

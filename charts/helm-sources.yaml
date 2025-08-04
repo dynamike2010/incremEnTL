@@ -1,0 +1,33 @@
+# Helm chart sources for core components
+
+# PostgreSQL
+postgresql:
+  repo: https://charts.bitnami.com/bitnami
+  chart: bitnami/postgresql
+
+# Redpanda (Kafka broker)
+redpanda:
+  repo: https://charts.redpanda.com
+  chart: redpanda/redpanda
+
+# Airflow
+airflow:
+  repo: https://airflow.apache.org
+  chart: apache-airflow/airflow
+
+# Prometheus
+prometheus:
+  repo: https://prometheus-community.github.io/helm-charts
+  chart: prometheus-community/prometheus
+
+# Grafana
+grafana:
+  repo: https://grafana.github.io/helm-charts
+  chart: grafana/grafana
+
+# Loki
+loki:
+  repo: https://grafana.github.io/helm-charts
+  chart: grafana/loki-stack
+
+# Debezium and RisingWave will be handled with manifests or custom charts.

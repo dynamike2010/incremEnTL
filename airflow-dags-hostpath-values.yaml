@@ -1,0 +1,9 @@
+dags:
+  persistence:
+    enabled: true
+    existingClaim: ""
+    size: 1Gi
+    storageClass: ""
+    accessMode: ReadWriteMany
+    type: hostPath
+    hostPath: /Users/michalbialek/PycharmProjects/incremEnTL/dags
