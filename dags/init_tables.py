@@ -57,7 +57,7 @@ default_args = {
 }
 
 dag = DAG(
-    'init_pg_tables',
+    'init_tables',
     default_args=default_args,
     schedule=None,
     catchup=False,

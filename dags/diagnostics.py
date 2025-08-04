@@ -35,7 +35,7 @@ default_args = {
 }
 
 dag = DAG(
-    'diagnostic_postgres_ping',
+    'diagnostics',
     default_args=default_args,
     schedule=None,
     catchup=False,
