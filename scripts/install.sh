@@ -103,15 +103,31 @@ helm upgrade --install airflow apache-airflow/airflow \
   --set scheduler.nodeSelector."kubernetes\.io/hostname"=k3d-etl-demo-agent-0 \
   --set triggerer.nodeSelector."kubernetes\.io/hostname"=k3d-etl-demo-agent-0
 
+# Always delete the PostgreSQL PVC and pod to ensure password is set to 'postgres' and data directory is clean
+echo "Patching and deleting PostgreSQL PVC to ensure password is reset..."
+# Remove finalizers if present (to avoid stuck PVCs)
+for pvc in $(kubectl get pvc -n etl -l app.kubernetes.io/instance=pg,app.kubernetes.io/name=postgresql -o name); do
+  kubectl patch "$pvc" -n etl -p '{"metadata":{"finalizers":[]}}' --type=merge || true
+done
+kubectl delete pvc -n etl -l app.kubernetes.io/instance=pg,app.kubernetes.io/name=postgresql --ignore-not-found
+kubectl wait --for=delete pvc -n etl -l app.kubernetes.io/instance=pg,app.kubernetes.io/name=postgresql --timeout=60s || echo "Postgres PVC already deleted or not found."
+# Delete any remaining PostgreSQL pod to avoid data directory corruption
+kubectl delete pod -n etl -l app.kubernetes.io/instance=pg,app.kubernetes.io/name=postgresql --ignore-not-found
+kubectl wait --for=delete pod -n etl -l app.kubernetes.io/instance=pg,app.kubernetes.io/name=postgresql --timeout=60s || echo "Postgres pod already deleted or not found."
+
 # Install PostgreSQL (Bitnami chart, version pinned, logical replication enabled for Debezium)
 helm upgrade --install pg bitnami/postgresql \
   --version 16.7.21 \
   --namespace etl --create-namespace --wait \
-  --set postgresqlPassword=postgres \
-  --set postgresqlExtendedConf.wal_level=logical
+  --set auth.postgresPassword=postgres \
+  --set "primary.extendedConfiguration=wal_level=logical"
 
 # Install Redpanda (standard Helm install)
 helm upgrade --install redpanda redpanda/redpanda --namespace etl --wait
+
+# Ensure Debezium topic exists in Redpanda (idempotent)
+echo "Creating Debezium topic dbserver1.public.sales in Redpanda (if not exists)..."
+kubectl exec -n etl redpanda-0 -c redpanda -- rpk topic create dbserver1.public.sales --partitions 1 --replicas 3 || true
 
 # Deploy Debezium connector ConfigMap and Kafka Connect (Debezium) after Redpanda is running
 echo "Applying Debezium connector ConfigMap..."
@@ -137,7 +153,9 @@ helm upgrade --install loki grafana/loki-stack --namespace etl --wait
 
 # Reset pgAdmin state to ensure servers.json is loaded on first start
 kubectl delete pod -n etl -l app.kubernetes.io/name=pgadmin4 --ignore-not-found
+kubectl wait --for=delete pod -n etl -l app.kubernetes.io/name=pgadmin4 --timeout=60s || echo "pgAdmin pod already deleted or not found."
 kubectl delete pvc -n etl -l app.kubernetes.io/name=pgadmin4 --ignore-not-found
+kubectl wait --for=delete pvc -n etl -l app.kubernetes.io/name=pgadmin4 --timeout=60s || echo "pgAdmin PVC already deleted or not found."
 kubectl apply -f scripts/pgadmin-servers-configmap.yaml
 helm upgrade --install pgadmin runix/pgadmin4 --namespace etl --create-namespace --wait \
   --set service.type=ClusterIP \
