@@ -49,19 +49,11 @@ fi
 
 # Print dashboard login token
 
+
 # Create a permanent dashboard token (Secret) for demo use
 if ! kubectl -n kube-system get secret dashboard-admin-sa-token >/dev/null 2>&1; then
-  echo "Creating permanent dashboard token (Secret)..."
-  kubectl -n kube-system apply -f - <<EOF
-apiVersion: v1
-kind: Secret
-metadata:
-  name: dashboard-admin-sa-token
-  namespace: kube-system
-  annotations:
-    kubernetes.io/service-account.name: "dashboard-admin-sa"
-type: kubernetes.io/service-account-token
-EOF
+  echo "Creating permanent dashboard token (Secret) from file..."
+  kubectl -n kube-system apply -f scripts/dashboard-admin-sa-token.yaml
   # Wait for token to be populated
   sleep 2
 else
