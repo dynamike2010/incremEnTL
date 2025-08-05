@@ -108,7 +108,7 @@ helm upgrade --install pg bitnami/postgresql \
   --version 16.7.21 \
   --namespace etl --create-namespace --wait \
   --set postgresqlPassword=postgres \
-  --set primary.extraConf.wal_level=logical
+  --set postgresqlExtendedConf.wal_level=logical
 
 # Install Redpanda (standard Helm install)
 helm upgrade --install redpanda redpanda/redpanda --namespace etl --wait
