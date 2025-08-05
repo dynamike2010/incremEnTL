@@ -48,11 +48,9 @@ else
   echo "dashboard-admin-sa ServiceAccount and ClusterRoleBinding already exist."
 fi
 
-
 # Print dashboard login token (permanent, does not expire)
 echo "Dashboard login token (permanent, does not expire):"
 kubectl -n kube-system get secret dashboard-admin-sa-token -o jsonpath='{.data.token}' | base64 --decode; echo
-
 
 # Create a permanent dashboard token (Secret) for demo use
 if ! kubectl -n kube-system get secret dashboard-admin-sa-token >/dev/null 2>&1; then
@@ -169,8 +167,6 @@ helm upgrade --install pgadmin runix/pgadmin4 --namespace etl --create-namespace
   --set 'extraVolumes[0].configMap.name=pgadmin-servers' \
   --set env.PGADMIN_CONFIG_SERVER_MODE=False
 
-# TODO: Add Debezium and RisingWave deployments
-
 # Install RisingWave (standalone for demo, can be customized)
 helm upgrade --install risingwave risingwavelabs/risingwave \
   --namespace etl --create-namespace --wait \
@@ -183,4 +179,3 @@ helm upgrade --install risingwave risingwavelabs/risingwave \
   --set compactor.storageClassName=local-path \
   --set tags.bundle=true \
   --set image.tag=v2.5.0
-
