@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: debezium-pg-sales-connector-config
+  namespace: etl
+data:
+  debezium-pg-sales-connector.json: |
+    {
+      "name": "debezium-pg-sales-connector",
+      "config": {
+        "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+        "database.hostname": "pg-postgresql.etl.svc.cluster.local",
+        "database.port": "5432",
+        "database.user": "postgres",
+        "database.password": "postgres",
+        "database.dbname": "etl",
+        "database.server.name": "dbserver1",
+        "table.include.list": "public.sales",
+        "plugin.name": "pgoutput",
+        "slot.name": "debezium_sales_slot",
+        "publication.name": "debezium_sales_pub",
+        "topic.prefix": "dbserver1",
+        "tombstones.on.delete": "false",
+        "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+        "value.converter": "org.apache.kafka.connect.json.JsonConverter"
+      }
+    }

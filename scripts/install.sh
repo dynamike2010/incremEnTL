@@ -47,7 +47,10 @@ else
   echo "dashboard-admin-sa ServiceAccount and ClusterRoleBinding already exist."
 fi
 
-# Print dashboard login token
+
+# Print dashboard login token (permanent, does not expire)
+echo "Dashboard login token (permanent, does not expire):"
+kubectl -n kube-system get secret dashboard-admin-sa-token -o jsonpath='{.data.token}' | base64 --decode; echo
 
 
 # Create a permanent dashboard token (Secret) for demo use
@@ -103,8 +106,17 @@ helm upgrade --install airflow apache-airflow/airflow \
 helm upgrade --install pg stable/postgresql --namespace etl --create-namespace --wait \
   --set postgresqlPassword=postgres
 
-# Install Redpanda (default settings)
+
+
+# Install Redpanda (standard Helm install)
 helm upgrade --install redpanda redpanda/redpanda --namespace etl --wait
+
+# Deploy Debezium connector ConfigMap and Kafka Connect (Debezium) after Redpanda is running
+echo "Applying Debezium connector ConfigMap..."
+kubectl apply -f scripts/debezium-pg-sales-connector-configmap.yaml
+echo "Deploying Kafka Connect with Debezium..."
+kubectl apply -f manifests/kafka-connect-debezium.yaml
+echo "Debezium CDC for sales table is now enabled via Kafka Connect."
 
 # Install Prometheus
 helm upgrade --install prometheus prometheus-community/prometheus --namespace etl --wait

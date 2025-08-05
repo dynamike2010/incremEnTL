@@ -1,0 +1,94 @@
+# Kafka Connect with Debezium for Redpanda CDC
+# Deploy this manifest after Redpanda is running.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-connect-debezium
+  namespace: etl
+  labels:
+    app: kafka-connect-debezium
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-connect-debezium
+  template:
+    metadata:
+      labels:
+        app: kafka-connect-debezium
+    spec:
+      containers:
+        - name: connect
+          image: debezium/connect:2.6
+          env:
+            - name: BOOTSTRAP_SERVERS
+              value: "redpanda-0.redpanda.etl.svc.cluster.local:9093,redpanda-1.redpanda.etl.svc.cluster.local:9093,redpanda-2.redpanda.etl.svc.cluster.local:9093"
+            - name: GROUP_ID
+              value: "connect-cluster"
+            - name: CONFIG_STORAGE_TOPIC
+              value: "connect-configs"
+            - name: OFFSET_STORAGE_TOPIC
+              value: "connect-offsets"
+            - name: STATUS_STORAGE_TOPIC
+              value: "connect-status"
+            - name: CONNECT_KEY_CONVERTER
+              value: "org.apache.kafka.connect.json.JsonConverter"
+            - name: CONNECT_VALUE_CONVERTER
+              value: "org.apache.kafka.connect.json.JsonConverter"
+            - name: CONNECT_REST_ADVERTISED_HOST_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            # TLS config for Redpanda
+            - name: CONNECT_SECURITY_PROTOCOL
+              value: "SSL"
+            - name: CONNECT_SSL_TRUSTSTORE_LOCATION
+              value: "/etc/redpanda-certs/ca.crt"
+            - name: CONNECT_SSL_TRUSTSTORE_TYPE
+              value: "PEM"
+            - name: CONNECT_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM
+              value: ""
+            - name: CONNECT_PRODUCER_SECURITY_PROTOCOL
+              value: "SSL"
+            - name: CONNECT_PRODUCER_SSL_TRUSTSTORE_LOCATION
+              value: "/etc/redpanda-certs/ca.crt"
+            - name: CONNECT_PRODUCER_SSL_TRUSTSTORE_TYPE
+              value: "PEM"
+            - name: CONNECT_PRODUCER_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM
+              value: ""
+            - name: CONNECT_CONSUMER_SECURITY_PROTOCOL
+              value: "SSL"
+            - name: CONNECT_CONSUMER_SSL_TRUSTSTORE_LOCATION
+              value: "/etc/redpanda-certs/ca.crt"
+            - name: CONNECT_CONSUMER_SSL_TRUSTSTORE_TYPE
+              value: "PEM"
+            - name: CONNECT_CONSUMER_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM
+              value: ""
+          ports:
+            - containerPort: 8083
+          volumeMounts:
+            - name: connector-config
+              mountPath: /kafka/connectors
+            - name: redpanda-certs
+              mountPath: /etc/redpanda-certs
+              readOnly: true
+      volumes:
+        - name: connector-config
+          configMap:
+            name: debezium-pg-sales-connector-config
+        - name: redpanda-certs
+          secret:
+            secretName: redpanda-default-root-certificate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-connect-debezium
+  namespace: etl
+spec:
+  selector:
+    app: kafka-connect-debezium
+  ports:
+    - protocol: TCP
+      port: 8083
+      targetPort: 8083

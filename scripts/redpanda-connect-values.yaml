@@ -1,0 +1,10 @@
+# Enable Redpanda Connect for Debezium CDC
+connect:
+  enabled: true
+  image:
+    repository: docker.redpanda.com/redpandadata/connectors
+    tag: latest
+  connectors:
+    - name: debezium-pg-sales-connector
+      configMap:
+        name: debezium-pg-sales-connector-config
