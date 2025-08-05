@@ -18,5 +18,6 @@ kubectl port-forward svc/prometheus-server 9090:80 -n etl &
 
 # RisingWave UI: http://localhost:30007
 kubectl port-forward svc/risingwave-frontend 30007:4567 -n etl &
+
 # k8s dashboard: http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/
-# kubectl proxy &
+kubectl proxy &

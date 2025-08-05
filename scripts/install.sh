@@ -116,7 +116,9 @@ echo "Applying Debezium connector ConfigMap..."
 kubectl apply -f scripts/debezium-pg-sales-connector-configmap.yaml
 echo "Deploying Kafka Connect with Debezium..."
 kubectl apply -f manifests/kafka-connect-debezium.yaml
-echo "Debezium CDC for sales table is now enabled via Kafka Connect."
+
+# Register Debezium connector via separate script to keep install.sh clean
+scripts/register-debezium-connector.sh
 
 # Install Prometheus
 helm upgrade --install prometheus prometheus-community/prometheus --namespace etl --wait
