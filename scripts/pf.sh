@@ -4,6 +4,9 @@
 # Airflow UI: http://localhost:8080/
 kubectl port-forward svc/airflow-webserver 8080:8080 -n etl &
 
+# Vault UI/API: http://localhost:8200/
+kubectl port-forward svc/vault 8200:8200 -n etl &
+
 # Redpanda Console: http://localhost:8081/
 kubectl port-forward svc/redpanda-console 8081:8080 -n etl &
 

@@ -9,6 +9,7 @@ helm uninstall grafana -n etl || true
 helm uninstall prometheus -n etl || true
 helm uninstall redpanda -n etl || true
 helm uninstall pg -n etl || true
+helm uninstall vault -n etl || true
 helm uninstall airflow -n etl || true
 
 # Optionally delete namespace

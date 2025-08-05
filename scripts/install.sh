@@ -17,6 +17,7 @@ helm repo add prometheus-community https://prometheus-community.github.io/helm-c
 helm repo add grafana https://grafana.github.io/helm-charts
 helm repo add runix https://helm.runix.net/
 helm repo add risingwavelabs https://risingwavelabs.github.io/helm-charts/ --force-update
+helm repo add hashicorp https://helm.releases.hashicorp.com
 helm repo update
 
 # Install cert-manager if not present (required for Redpanda)
@@ -102,11 +103,12 @@ helm upgrade --install airflow apache-airflow/airflow \
   --set scheduler.nodeSelector."kubernetes\.io/hostname"=k3d-etl-demo-agent-0 \
   --set triggerer.nodeSelector."kubernetes\.io/hostname"=k3d-etl-demo-agent-0
 
-# Install PostgreSQL (stable chart, custom password)
-helm upgrade --install pg stable/postgresql --namespace etl --create-namespace --wait \
-  --set postgresqlPassword=postgres
-
-
+# Install PostgreSQL (Bitnami chart, version pinned, logical replication enabled for Debezium)
+helm upgrade --install pg bitnami/postgresql \
+  --version 16.7.21 \
+  --namespace etl --create-namespace --wait \
+  --set postgresqlPassword=postgres \
+  --set primary.extraConf.wal_level=logical
 
 # Install Redpanda (standard Helm install)
 helm upgrade --install redpanda redpanda/redpanda --namespace etl --wait
@@ -126,6 +128,9 @@ helm upgrade --install prometheus prometheus-community/prometheus --namespace et
 # Install Grafana
 helm upgrade --install grafana grafana/grafana --namespace etl --wait \
   --set adminPassword=grafana
+
+# Install Vault (dev mode, for demo/testing)
+helm upgrade --install vault hashicorp/vault --namespace etl --create-namespace --wait --set "server.dev.enabled=true"
 
 # Install Loki
 helm upgrade --install loki grafana/loki-stack --namespace etl --wait
