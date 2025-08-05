@@ -1,0 +1,32 @@
+# airflow-values.yaml
+# Place all Airflow Helm values here
+redis:
+  enabled: true
+  persistence:
+    enabled: false
+  password: ""
+airflow:
+  config:
+    celery:
+      broker_url: "redis://airflow-redis:6379/0"
+    core:
+      dags_folder: "/opt/airflow/dags"
+postgresql:
+  primary:
+    persistence:
+      enabled: true
+workers:
+  persistence:
+    enabled: false
+webserver:
+  nodeSelector:
+    kubernetes.io/hostname: k3d-etl-demo-agent-0
+workers:
+  nodeSelector:
+    kubernetes.io/hostname: k3d-etl-demo-agent-0
+scheduler:
+  nodeSelector:
+    kubernetes.io/hostname: k3d-etl-demo-agent-0
+triggerer:
+  nodeSelector:
+    kubernetes.io/hostname: k3d-etl-demo-agent-0

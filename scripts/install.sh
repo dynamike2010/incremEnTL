@@ -175,5 +175,12 @@ helm upgrade --install pgadmin runix/pgadmin4 --namespace etl --create-namespace
 helm upgrade --install risingwave risingwavelabs/risingwave \
   --namespace etl --create-namespace --wait \
   --version 0.2.33 \
-  -f scripts/risingwave-values.yaml
+  --set standalone.enabled=true \
+  --set frontend.service.type=NodePort \
+  --set frontend.service.nodePort=30007 \
+  --set meta.storageClassName=local-path \
+  --set compute.storageClassName=local-path \
+  --set compactor.storageClassName=local-path \
+  --set tags.bundle=true \
+  --set image.tag=v2.5.0
 

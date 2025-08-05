@@ -1,0 +1,7 @@
+# postgres-values.yaml
+# Place all PostgreSQL Helm values here
+auth:
+  postgresPassword: postgres
+primary:
+  extendedConfiguration: |
+    wal_level=logical

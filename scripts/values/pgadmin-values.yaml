@@ -1,0 +1,19 @@
+# pgadmin-values.yaml
+# Place pgAdmin Helm values here
+service:
+  type: ClusterIP
+env:
+  email: airflow@airflow.com
+  password: airflow
+persistence:
+  enabled: false
+extraVolumeMounts:
+  - name: pgadmin-servers
+    mountPath: /pgadmin4/servers.json
+    subPath: servers.json
+extraVolumes:
+  - name: pgadmin-servers
+    configMap:
+      name: pgadmin-servers
+envVars:
+  PGADMIN_CONFIG_SERVER_MODE: False

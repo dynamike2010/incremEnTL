@@ -1,0 +1,3 @@
+# grafana-values.yaml
+# Place Grafana Helm values here
+adminPassword: grafana

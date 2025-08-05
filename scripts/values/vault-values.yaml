@@ -1,0 +1,5 @@
+# vault-values.yaml
+# Place Vault Helm values here
+server:
+  dev:
+    enabled: true
