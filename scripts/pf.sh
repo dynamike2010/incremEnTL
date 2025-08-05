@@ -11,9 +11,12 @@ kubectl port-forward svc/redpanda-console 8081:8080 -n etl &
 kubectl port-forward svc/grafana 3000:80 -n etl &
 
 # pgAdmin: http://localhost:5050/
-kubectl port-forward svc/pgadmin 5050:80 -n etl &
+kubectl port-forward svc/pgadmin-pgadmin4 5050:80 -n etl &
 
 # Prometheus: http://localhost:9090/
 kubectl port-forward svc/prometheus-server 9090:80 -n etl &
+
+# RisingWave UI: http://localhost:30007
+kubectl port-forward svc/risingwave-frontend 30007:4567 -n etl &
 # k8s dashboard: http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/
 # kubectl proxy &

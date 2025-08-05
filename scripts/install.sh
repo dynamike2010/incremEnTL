@@ -16,6 +16,7 @@ helm repo add apache-airflow https://airflow.apache.org
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo add grafana https://grafana.github.io/helm-charts
 helm repo add runix https://helm.runix.net/
+helm repo add risingwavelabs https://risingwavelabs.github.io/helm-charts/ --force-update
 helm repo update
 
 # Install cert-manager if not present (required for Redpanda)
@@ -47,8 +48,28 @@ else
 fi
 
 # Print dashboard login token
-echo "Dashboard login token:"
-kubectl -n kube-system create token dashboard-admin-sa
+
+# Create a permanent dashboard token (Secret) for demo use
+if ! kubectl -n kube-system get secret dashboard-admin-sa-token >/dev/null 2>&1; then
+  echo "Creating permanent dashboard token (Secret)..."
+  kubectl -n kube-system apply -f - <<EOF
+apiVersion: v1
+kind: Secret
+metadata:
+  name: dashboard-admin-sa-token
+  namespace: kube-system
+  annotations:
+    kubernetes.io/service-account.name: "dashboard-admin-sa"
+type: kubernetes.io/service-account-token
+EOF
+  # Wait for token to be populated
+  sleep 2
+else
+  echo "Permanent dashboard token Secret already exists."
+fi
+
+echo "Dashboard login token (permanent, does not expire):"
+kubectl -n kube-system get secret dashboard-admin-sa-token -o jsonpath='{.data.token}' | base64 --decode; echo
 
 # Install Airflow (official chart, LocalExecutor with bundled PostgreSQL, using DAGs PVC)
 helm upgrade --install airflow apache-airflow/airflow \
@@ -120,3 +141,10 @@ helm upgrade --install pgadmin runix/pgadmin4 --namespace etl --create-namespace
   --set env.PGADMIN_CONFIG_SERVER_MODE=False
 
 # TODO: Add Debezium and RisingWave deployments
+
+# Install RisingWave (standalone for demo, can be customized)
+helm upgrade --install risingwave risingwavelabs/risingwave \
+  --namespace etl --create-namespace --wait \
+  --version 0.2.33 \
+  -f scripts/risingwave-values.yaml
+

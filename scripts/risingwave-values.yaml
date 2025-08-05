@@ -1,0 +1,16 @@
+standalone:
+  enabled: true
+frontend:
+  service:
+    type: NodePort
+    nodePort: 30007
+meta:
+  storageClassName: local-path
+compute:
+  storageClassName: local-path
+compactor:
+  storageClassName: local-path
+tags:
+  bundle: true
+image:
+  tag: v2.5.0

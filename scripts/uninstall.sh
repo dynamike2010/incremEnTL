@@ -2,6 +2,7 @@
 # Uninstall all core components
 set -e
 
+helm uninstall risingwave -n etl || true
 helm uninstall loki -n etl || true
 helm uninstall pgadmin -n etl || true
 helm uninstall grafana -n etl || true
