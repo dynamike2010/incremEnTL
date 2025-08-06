@@ -18,10 +18,12 @@ kubectl delete configmap debezium-pg-sales-connector-config -n etl || true
 
 # Remove finalizers from all PVCs and pods in etl namespace
 
-# Remove finalizers from all major resource types in etl namespace
-for kind in pod pvc replicaset statefulset deployment service; do
+
+# Remove finalizers and force delete all major resource types in etl namespace
+for kind in pod pvc pv replicaset statefulset deployment service; do
   for res in $(kubectl get $kind -n etl -o name); do
     kubectl patch "$res" -n etl -p '{"metadata":{"finalizers":[]}}' --type=merge || true
+    kubectl delete "$res" -n etl --force --grace-period=0 --ignore-not-found || true
   done
 done
 
