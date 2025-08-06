@@ -5,9 +5,6 @@ set -e
 # Ensure etl namespace exists
 kubectl get namespace etl >/dev/null 2>&1 || kubectl create namespace etl
 
-# Create DAGs hostPath PV and PVC for Airflow
-kubectl apply -f scripts/airflow-dags-pv-pvc.yaml || { echo 'Failed to apply DAGs PV/PVC'; exit 1; }
-
 # Add Helm repos
 helm repo add stable https://charts.helm.sh/stable
 helm repo add redpanda https://charts.redpanda.com
@@ -17,6 +14,7 @@ helm repo add grafana https://grafana.github.io/helm-charts
 helm repo add runix https://helm.runix.net/
 helm repo add risingwavelabs https://risingwavelabs.github.io/helm-charts/ --force-update
 helm repo add hashicorp https://helm.releases.hashicorp.com
+helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update
 
 # Install cert-manager if not present (required for Redpanda)
@@ -24,6 +22,9 @@ if ! kubectl get crd certificates.cert-manager.io >/dev/null 2>&1; then
   kubectl apply -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
   kubectl wait --for=condition=Available --timeout=180s -n cert-manager deployment/cert-manager-webhook || { echo 'cert-manager not ready'; exit 1; }
 fi
+
+# Create DAGs hostPath PV and PVC for Airflow (must exist before Airflow install)
+kubectl apply -f scripts/airflow-dags-pv-pvc.yaml || { echo 'Failed to apply DAGs PV/PVC'; exit 1; }
 
 # Install Airflow (using airflow-values.yaml)
 helm upgrade --install airflow apache-airflow/airflow \
@@ -55,8 +56,6 @@ kubectl exec -n etl redpanda-0 -c redpanda -- rpk topic create dbserver1.public.
 kubectl apply -f scripts/debezium-pg-sales-connector-configmap.yaml
 kubectl apply -f manifests/kafka-connect-debezium.yaml
 
-scripts/register-debezium-connector.sh
-
 # Install Prometheus (using prometheus-values.yaml)
 helm upgrade --install prometheus prometheus-community/prometheus --namespace etl --wait \
   # No values file used (was empty)
@@ -86,3 +85,5 @@ helm upgrade --install pgadmin runix/pgadmin4 --namespace etl --create-namespace
 helm upgrade --install risingwave risingwavelabs/risingwave \
   --namespace etl --create-namespace --wait \
   -f values/risingwave-values.yaml
+
+scripts/register-debezium-connector.sh
