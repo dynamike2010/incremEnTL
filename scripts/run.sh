@@ -29,7 +29,7 @@ kubectl apply -f scripts/airflow-dags-pv-pvc.yaml || { echo 'Failed to apply DAG
 # Install Airflow (using airflow-values.yaml)
 helm upgrade --install airflow apache-airflow/airflow \
   --namespace etl --create-namespace --wait \
-  -f values/airflow-values.yaml
+  -f scripts/values/airflow-values.yaml
 
 # Always delete the PostgreSQL PVC and pod to ensure password is set to 'postgres' and data directory is clean
 for pvc in $(kubectl get pvc -n etl -l app.kubernetes.io/instance=pg,app.kubernetes.io/name=postgresql -o name); do
@@ -43,7 +43,7 @@ kubectl wait --for=delete pod -n etl -l app.kubernetes.io/instance=pg,app.kubern
 # Install PostgreSQL (using postgres-values.yaml)
 helm upgrade --install pg bitnami/postgresql \
   --namespace etl --create-namespace --wait \
-  -f values/postgres-values.yaml
+  -f scripts/values/postgres-values.yaml
 
 # Install Redpanda (using redpanda-values.yaml)
 helm upgrade --install redpanda redpanda/redpanda --namespace etl --wait \
@@ -62,11 +62,11 @@ helm upgrade --install prometheus prometheus-community/prometheus --namespace et
 
 # Install Grafana (using grafana-values.yaml)
 helm upgrade --install grafana grafana/grafana --namespace etl --wait \
-  -f values/grafana-values.yaml
+  -f scripts/values/grafana-values.yaml
 
 # Install Vault (using vault-values.yaml)
 helm upgrade --install vault hashicorp/vault --namespace etl --create-namespace --wait \
-  -f values/vault-values.yaml
+  -f scripts/values/vault-values.yaml
 
 # Install Loki (using loki-values.yaml)
 helm upgrade --install loki grafana/loki-stack --namespace etl --wait \
@@ -79,11 +79,11 @@ kubectl delete pvc -n etl -l app.kubernetes.io/name=pgadmin4 --ignore-not-found
 kubectl wait --for=delete pvc -n etl -l app.kubernetes.io/name=pgadmin4 --timeout=60s || echo "pgAdmin PVC already deleted or not found."
 kubectl apply -f scripts/pgadmin-servers-configmap.yaml
 helm upgrade --install pgadmin runix/pgadmin4 --namespace etl --create-namespace --wait \
-  -f values/pgadmin-values.yaml
+  -f scripts/values/pgadmin-values.yaml
 
 # Install RisingWave (using risingwave-values.yaml)
 helm upgrade --install risingwave risingwavelabs/risingwave \
   --namespace etl --create-namespace --wait \
-  -f values/risingwave-values.yaml
+  -f scripts/values/risingwave-values.yaml
 
 scripts/register-debezium-connector.sh
