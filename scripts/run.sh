@@ -11,7 +11,7 @@ helm repo add redpanda https://charts.redpanda.com
 helm repo add apache-airflow https://airflow.apache.org
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo add grafana https://grafana.github.io/helm-charts
-helm repo add runix https://helm.runix.net/
+helm repo add runix https://helm.runix.net/ --force-update
 helm repo add risingwavelabs https://risingwavelabs.github.io/helm-charts/ --force-update
 helm repo add hashicorp https://helm.releases.hashicorp.com
 helm repo add bitnami https://charts.bitnami.com/bitnami
@@ -37,9 +37,9 @@ for pvc in $(kubectl get pvc -n etl -l app.kubernetes.io/instance=pg,app.kuberne
   kubectl patch "$pvc" -n etl -p '{"metadata":{"finalizers":[]}}' --type=merge || true
 done
 kubectl delete pvc -n etl -l app.kubernetes.io/instance=pg,app.kubernetes.io/name=postgresql --ignore-not-found
-kubectl wait --for=delete pvc -n etl -l app.kubernetes.io/instance=pg,app.kubernetes.io/name=postgresql --timeout=60s || echo "Postgres PVC already deleted or not found."
+# kubectl wait --for=delete pvc -n etl -l app.kubernetes.io/instance=pg,app.kubernetes.io/name=postgresql --timeout=60s || echo "Postgres PVC already deleted or not found."
 kubectl delete pod -n etl -l app.kubernetes.io/instance=pg,app.kubernetes.io/name=postgresql --ignore-not-found
-kubectl wait --for=delete pod -n etl -l app.kubernetes.io/instance=pg,app.kubernetes.io/name=postgresql --timeout=60s || echo "Postgres pod already deleted or not found."
+# kubectl wait --for=delete pod -n etl -l app.kubernetes.io/instance=pg,app.kubernetes.io/name=postgresql --timeout=60s || echo "Postgres pod already deleted or not found."
 
 # Install PostgreSQL (using postgres-values.yaml)
 helm upgrade --install pg bitnami/postgresql \
@@ -84,4 +84,4 @@ helm upgrade --install risingwave risingwavelabs/risingwave \
   --namespace etl --create-namespace --wait \
   -f scripts/values/risingwave-values.yaml
 
-scripts/register-debezium-connector.sh
+# scripts/register-debezium-connector.sh

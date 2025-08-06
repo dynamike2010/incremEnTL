@@ -21,9 +21,6 @@ workers:
 webserver:
   nodeSelector:
     kubernetes.io/hostname: k3d-etl-demo-agent-0
-workers:
-  nodeSelector:
-    kubernetes.io/hostname: k3d-etl-demo-agent-0
 scheduler:
   nodeSelector:
     kubernetes.io/hostname: k3d-etl-demo-agent-0
