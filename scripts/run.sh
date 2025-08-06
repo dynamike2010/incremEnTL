@@ -28,6 +28,7 @@ kubectl apply -f scripts/airflow-dags-pv-pvc.yaml || { echo 'Failed to apply DAG
 
 # Install Airflow (using airflow-values.yaml)
 helm upgrade --install airflow apache-airflow/airflow \
+  --version 1.16.0 \
   --namespace etl --create-namespace --wait \
   -f scripts/values/airflow-values.yaml
 
@@ -46,8 +47,7 @@ helm upgrade --install pg bitnami/postgresql \
   -f scripts/values/postgres-values.yaml
 
 # Install Redpanda (using redpanda-values.yaml)
-helm upgrade --install redpanda redpanda/redpanda --namespace etl --wait \
-  # No values file used (was empty)
+helm upgrade --install redpanda redpanda/redpanda --namespace etl --wait
 
 echo "Creating Debezium topic dbserver1.public.sales in Redpanda (if not exists)..."
 kubectl exec -n etl redpanda-0 -c redpanda -- rpk topic create dbserver1.public.sales --partitions 1 --replicas 3 || true
@@ -57,8 +57,7 @@ kubectl apply -f scripts/debezium-pg-sales-connector-configmap.yaml
 kubectl apply -f manifests/kafka-connect-debezium.yaml
 
 # Install Prometheus (using prometheus-values.yaml)
-helm upgrade --install prometheus prometheus-community/prometheus --namespace etl --wait \
-  # No values file used (was empty)
+helm upgrade --install prometheus prometheus-community/prometheus --namespace etl --wait
 
 # Install Grafana (using grafana-values.yaml)
 helm upgrade --install grafana grafana/grafana --namespace etl --wait \
@@ -69,8 +68,7 @@ helm upgrade --install vault hashicorp/vault --namespace etl --create-namespace 
   -f scripts/values/vault-values.yaml
 
 # Install Loki (using loki-values.yaml)
-helm upgrade --install loki grafana/loki-stack --namespace etl --wait \
-  # No values file used (was empty)
+helm upgrade --install loki grafana/loki-stack --namespace etl --wait
 
 # Reset pgAdmin state to ensure servers.json is loaded on first start
 kubectl delete pod -n etl -l app.kubernetes.io/name=pgadmin4 --ignore-not-found
